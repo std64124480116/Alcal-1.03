@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alcaljing 1.02</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e1e1e">
+    <link rel="apple-touch-icon" href="apple-touch-icon.jpeg">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --bg-body: #f8f9fa; --bg-panel: #ffffff; --primary: #1e1e1e; --border: #e9ecef; --text-main: #212529; --text-muted: #6c757d; --hover-gray: #f1f3f5; --green: #27ae60; --red: #e74c3c; --shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Prompt', sans-serif; background: var(--bg-body); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        .d-flex { display: flex; align-items: center; }
+        .gap-10 { gap: 10px; }
+        .flex-1 { flex: 1; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        .text-bold { font-weight: 600; }
+        
+        #mainAppSection { display: none; flex-direction: column; height: 100vh; width: 100%; }
+
+        header { height: 60px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; box-shadow: var(--shadow); z-index: 10; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .shop-name { font-size: 18px; font-weight: 600; color: var(--primary); letter-spacing: 0.5px; }
+        .container { display: flex; flex: 1; overflow: hidden; }
+
+        button { cursor: pointer; transition: all 0.2s; font-family: 'Prompt', sans-serif; border: none; outline: none; }
+        .btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .btn-primary:disabled { background: #adb5bd; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.6; }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--primary); }
+        .btn-outline:hover { border-color: var(--primary); background: var(--hover-gray); }
+        .btn-ghost { background: transparent; color: var(--text-muted); padding: 8px; border-radius: 6px; }
+        .btn-ghost:hover { background: var(--hover-gray); color: var(--primary); }
+        .btn-icon { width: 32px; height: 32px; border-radius: 50%; background: white; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .btn-icon:hover { border-color: var(--primary); color: var(--primary); }
+        
+        .tables-section { flex: 0.8; background: var(--bg-panel); padding: 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+        #customerList { flex: 1; overflow-y: auto; padding-right: 5px; margin-bottom: 10px; }
+        #customerList::-webkit-scrollbar { width: 4px; }
+        #customerList::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        .menu-section { flex: 1.8; background: var(--bg-body); padding: 20px 20px 0 20px; display: flex; flex-direction: column; overflow: hidden; }
+        .order-section { flex: 1.2; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; box-shadow: -2px 0 10px rgba(0,0,0,0.02); }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; }
+        .section-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        
+        .category-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; flex-shrink: 0; }
+        .category-bar { display: flex; gap: 8px; overflow-x: auto; padding: 4px; scrollbar-width: none; flex: 1; }
+        .cat-btn { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; white-space: nowrap; color: var(--text-muted); box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+        .cat-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .menu-grid-container { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; align-content: start; }
+        .menu-item { background: white; border-radius: 12px; overflow: hidden; transition: 0.2s; border: 1px solid transparent; display: flex; flex-direction: column; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .menu-item:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-color: var(--border); }
+        .menu-item.out-of-stock { opacity: 0.6; filter: grayscale(100%); }
+        .menu-img { height: 110px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #ced4da; overflow: hidden; cursor: pointer; background-size: cover; background-position: center; }
+        .menu-details { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
+        .menu-name { font-weight: 500; font-size: 14px; color: var(--text-main); line-height: 1.3; margin-bottom: 4px; }
+        .menu-price { font-weight: 700; font-size: 15px; color: var(--primary); }
+        .menu-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; z-index: 5; opacity: 0; transition: 0.2s; }
+        .menu-item:hover .menu-actions { opacity: 1; }
+        .btn-mini { width: 26px; height: 26px; border-radius: 6px; background: rgba(0,0,0,0.7); color: white; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .btn-mini:hover { background: var(--primary); }
+
+        .customer-card { background: white; border: 1px solid var(--border); padding: 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        .customer-card:hover { border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .customer-card.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .customer-card.active .text-muted { color: rgba(255,255,255,0.6); }
+
+        .order-header { padding: 20px; border-bottom: 1px solid var(--border); background: #fafafa; }
+        .order-list { flex: 1; overflow-y: auto; padding: 15px; }
+        .order-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border); }
+        .item-row { display: flex; justify-content: space-between; font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+        .item-options { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; background: var(--hover-gray); padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        .qty-control { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 6px; height: 28px; background: white; }
+        .btn-qty { width: 28px; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-main); }
+        .btn-qty:hover { background: var(--hover-gray); }
+        .qty-num { width: 30px; text-align: center; font-size: 13px; font-weight: 600; border-left: 1px solid var(--border); border-right: 1px solid var(--border); line-height: 28px; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+        .modal.show { display: flex; animation: fadeIn 0.2s; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 420px; max-width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
+        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--primary); }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-label { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block; color: var(--text-main); }
+        .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Prompt'; font-size: 14px; transition: 0.2s; }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,0,0,0.05); outline: none; }
+        
+        .option-group-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.2s; background: white; }
+        .chip:hover { border-color: var(--primary); }
+        .chip.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .chip.type-income.selected { background: var(--green); border-color: var(--green); }
+        .chip.type-expense.selected { background: var(--red); border-color: var(--red); }
+
+        .cat-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); }
+        .cat-list-item:last-child { border-bottom: none; }
+        .upload-box { border: 2px dashed var(--border); border-radius: 8px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); background-size: cover; background-position: center; }
+        
+        .report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .report-table td { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .balance-card { background: var(--bg-body); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .sub-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        /* --- Login System Styles --- */
+        #loginSection {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: var(--bg-body); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .login-card {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 340px; text-align: center;
+        }
+        .pin-dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
+        .dot { width: 15px; height: 15px; border-radius: 50%; background: #e9ecef; transition: 0.2s; }
+        .dot.active { background: var(--primary); transform: scale(1.2); }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .num-btn {
+            width: 60px; height: 60px; border-radius: 50%;
+            border: 1px solid var(--border); background: white;
+            font-size: 20px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; margin: 0 auto;
+        }
+        .num-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .num-btn:active { transform: scale(0.95); }
+
+        .setting-btn-row {
+            display: flex; flex-direction: column; gap: 10px; margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginSection">
+    <div class="login-card">
+				<div style="font-size: 20px; font-weight: 700; color: var(--primary);">
+                 <span class="shop-name-text">Alcaljing</span>
+				<span style="font-weight:300; font-size:20px; opacity:0.5;">POS</span>
+             </div>
+        <div style="color: var(--text-muted); font-size: 14px;">กรุณาใส่รหัสร้านค้า</div>
+        
+        <div class="pin-dots" id="pinDots">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+
+        <div class="numpad">
+            <div class="num-btn" onclick="enterPin(1)">1</div>
+            <div class="num-btn" onclick="enterPin(2)">2</div>
+            <div class="num-btn" onclick="enterPin(3)">3</div>
+            <div class="num-btn" onclick="enterPin(4)">4</div>
+            <div class="num-btn" onclick="enterPin(5)">5</div>
+            <div class="num-btn" onclick="enterPin(6)">6</div>
+            <div class="num-btn" onclick="enterPin(7)">7</div>
+            <div class="num-btn" onclick="enterPin(8)">8</div>
+            <div class="num-btn" onclick="enterPin(9)">9</div>
+            <div class="num-btn" style="background:transparent; border:none;" onclick="clearPin()">C</div>
+            <div class="num-btn" onclick="enterPin(0)">0</div>
+            <div class="num-btn" style="background:transparent; border:none; color:var(--red);" onclick="delPin()"><i class="fas fa-backspace"></i></div>
+        </div>
+    </div>
+</div>
+
+<div id="mainAppSection">
+    <header>
+        <div class="brand">
+            <img src="apple-touch-icon.jpeg" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" style="height: 36px; width: 36px; border-radius: 8px; object-fit: cover; background: #333;"> 
+            <div class="shop-name">Alcaljing <span style="font-weight:300; font-size:14px; opacity:0.7;">POS</span></div>
+        </div>
+        <div class="d-flex gap-10" style="font-size: 13px; color: var(--text-muted);">
+            <div class="d-flex gap-10">
+                 <i class="fas fa-save" id="saveIcon" style="opacity:0; transition:0.5s; color:var(--green);" title="Saved"></i>
+            </div>
+            <div><i class="far fa-calendar-alt"></i> <span id="currentDate"></span></div>
+            <div style="width:1px; height:12px; background:var(--border);"></div>
+            <div><i class="far fa-clock"></i> <span id="clock">00:00</span></div>
+            <div style="width:1px; height:12px; background:var(--border);"></div>
+            <button class="btn btn-ghost" onclick="openSettings()" title="ตั้งค่า / สำรองข้อมูล"><i class="fas fa-cog"></i></button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tables-section">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-store"></i> หน้าร้าน</div>
+                <div class="d-flex gap-10">
+                    <button class="btn btn-ghost" onclick="openTxModal()" title="บันทึกรายรับ/จ่าย"><i class="fas fa-wallet"></i></button>
+                    <button class="btn btn-ghost" onclick="openReportModal()" title="รายงานประจำวัน"><i class="fas fa-chart-line"></i></button>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-10" style="margin-bottom: 15px;">
+                <button class="btn btn-primary flex-1" onclick="openCustomerModal('table')"><i class="fas fa-plus-circle"></i> เปิดโต๊ะ</button>
+                <button class="btn btn-outline flex-1" onclick="openCustomerModal('takeaway')"><i class="fas fa-shopping-bag"></i> กลับบ้าน</button>
+            </div>
+            
+            <div id="customerList"></div>
+        </div>
+
+        <div class="menu-section">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-utensils"></i> รายการอาหาร</div>
+                <button class="btn btn-primary" onclick="openMenuModal()"><i class="fas fa-plus"></i> เพิ่มเมนู</button>
+            </div>
+            
+            <div class="category-wrapper">
+                <div class="category-bar" id="categoryBar"></div>
+                <button class="btn-icon" onclick="openCategoryManager()" title="จัดการหมวดหมู่" style="flex-shrink:0;"><i class="fas fa-cog" style="color:#000;"></i></button>
+            </div>
+
+            <div class="menu-grid-container">
+                <div id="menuGrid" class="menu-grid"></div>
+            </div>
+        </div>
+
+        <div class="order-section">
+            <div class="order-header">
+                <div class="order-title" id="currentCustomerName" style="font-size:16px;">เลือกโต๊ะ</div>
+                <div style="font-size:12px; color:var(--text-muted);" id="currentCustomerType">-</div>
+            </div>
+            <div id="orderList" class="order-list"></div>
+            <div style="padding: 20px; background: white; border-top: 1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px;">
+                    <span style="font-size:13px; color:var(--text-muted);">ยอดรวมสุทธิ</span>
+                    <span style="font-size:24px; font-weight:700; color:var(--primary);" id="totalAmount">฿0</span>
+                </div>
+                <div class="d-flex gap-10" style="margin-bottom: 10px;">
+                    <button class="btn btn-outline flex-1" onclick="sendOrderToKitchen()">ส่งครัว</button>
+                    <button class="btn btn-primary flex-1" id="btnPay" onclick="openPaymentModal()" disabled>ชำระเงิน</button>
+                </div>
+                <button class="btn btn-ghost" style="width: 100%; font-size:12px;" onclick="cancelCurrentOrder()">ยกเลิกรายการ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="customerModal" data-type="table">
+    <div class="modal-content">
+        <div class="modal-title">ลูกค้าใหม่</div>
+        <div class="form-group">
+            <label class="form-label">ชื่อโต๊ะ / ชื่อลูกค้า</label>
+            <input type="text" id="customerName" class="form-input" placeholder="ระบุชื่อ...">
+        </div>
+        <div class="d-flex gap-10">
+            <button class="btn btn-outline flex-1" onclick="closeModal('customerModal')">ยกเลิก</button>
+            <button class="btn btn-primary flex-1" onclick="saveCustomer()">ยืนยัน</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="txModal">
+    <div class="modal-content">
+        <div class="modal-title">บันทึกรายรับ / รายจ่าย</div>
+        <div class="d-flex gap-10" style="margin-bottom:15px;">
+            <div class="chip flex-1 text-center type-income selected" id="optTxIncome" onclick="setTxType('income')" style="padding:10px;"><i class="fas fa-arrow-up"></i> รายรับ</div>
+            <div class="chip flex-1 text-center type-expense" id="optTxExpense" onclick="setTxType('expense')" style="padding:10px;"><i class="fas fa-arrow-down"></i> รายจ่าย</div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">ช่องทางเงิน</label>
+            <div class="d-flex gap-10">
+                <div class="chip flex-1 text-center selected" id="optTxCash" onclick="setTxMethod('cash')">เงินสด</div>
+                <div class="chip flex-1 text-center" id="optTxTransfer" onclick="setTxMethod('transfer')">โอน</div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">จำนวนเงิน (บาท)</label>
+            <input type="number" id="txAmount" class="form-input" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label class="form-label">รายละเอียด</label>
+            <input type="text" id="txNote" class="form-input" placeholder="เช่น ซื้อน้ำแข็ง, เงินทอนเริ่มต้น">
+        </div>
+        <div class="d-flex gap-10" style="margin-top:10px;">
+            <button class="btn btn-outline flex-1" onclick="closeModal('txModal')">ยกเลิก</button>
+            <button class="btn btn-primary flex-1" onclick="saveTransaction()">บันทึก</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="reportModal">
+    <div class="modal-content" style="width: 500px;">
+        <div class="modal-title">สรุปยอดวันนี้</div>
+        <div style="margin-bottom: 20px;">
+            <h4 style="margin-bottom: 10px; font-size:14px;">1. ยอดขายอาหาร (Sales)</h4>
+            <div class="balance-card">
+                <div><i class="fas fa-utensils"></i> ยอดขายรวม</div>
+                <div class="text-right">
+                    <div class="text-bold" id="rptSalesTotal" style="font-size:16px;">฿0</div>
+                    <div class="sub-detail">สด: <span id="rptSalesCash">0</span> / โอน: <span id="rptSalesTransfer">0</span></div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <h4 style="margin-bottom: 10px; font-size:14px;">2. การเคลื่อนไหวเงิน (Cash Flow)</h4>
+            <table class="report-table">
+                <tr><td>รายรับอื่นๆ (Income)</td><td class="text-right text-green"><div id="rptIncomeTotal">+ ฿0</div><div class="sub-detail">สด: <span id="rptIncomeCash">0</span> / โอน: <span id="rptIncomeTransfer">0</span></div></td></tr>
+                <tr><td>รายจ่าย (Expense)</td><td class="text-right text-red"><div id="rptExpenseTotal">- ฿0</div><div class="sub-detail">สด: <span id="rptExpenseCash">0</span> / โอน: <span id="rptExpenseTransfer">0</span></div></td></tr>
+            </table>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <h4 style="margin-bottom: 10px; font-size:14px;">3. สรุปยอดเงินสุทธิ (Net Balance)</h4>
+            <div class="d-flex gap-10">
+                <div class="balance-card flex-1" style="border: 1px solid var(--primary); display:block; text-align:center;">
+                    <div style="font-size:12px; margin-bottom:5px;"><i class="fas fa-coins"></i> เงินสดในลิ้นชัก</div>
+                    <div class="text-bold" style="font-size:20px;" id="rptNetCash">฿0</div>
+                </div>
+                <div class="balance-card flex-1" style="border: 1px solid var(--border); display:block; text-align:center;">
+                    <div style="font-size:12px; margin-bottom:5px;"><i class="fas fa-university"></i> ยอดเงินโอน</div>
+                    <div class="text-bold" style="font-size:20px;" id="rptNetTransfer">฿0</div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-10">
+             <button class="btn btn-outline flex-1" onclick="closeModal('reportModal')">ปิดหน้าต่าง</button>
+             <button class="btn btn-primary flex-1" onclick="printAndCloseDay()"><i class="fas fa-print"></i> ปิดยอดวัน & รีเซ็ต</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="categoryModal">
+    <div class="modal-content">
+        <div class="modal-title">จัดการหมวดหมู่</div>
+        <div class="d-flex gap-10" style="margin-bottom: 15px;">
+            <input type="text" id="newCatName" class="form-input flex-1" placeholder="ชื่อหมวดหมู่ใหม่...">
+            <button class="btn btn-primary" onclick="addCategory()">เพิ่ม</button>
+        </div>
+        <div id="categoryListManager" style="flex:1; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:10px;"></div>
+        <button class="btn btn-outline" style="margin-top:10px;" onclick="closeModal('categoryModal')">ปิด</button>
+    </div>
+</div>
+
+<div class="modal" id="menuModal">
+    <div class="modal-content" style="width: 500px;">
+        <div class="modal-title">จัดการเมนู</div>
+        <input type="hidden" id="menuId">
+        <div style="display:flex; gap:15px;">
+            <div style="flex:1;">
+                <div class="form-group">
+                    <div class="upload-box" id="uploadBox" onclick="document.getElementById('menuFileInput').click()">
+                        <i class="fas fa-camera" style="font-size: 20px; margin-bottom: 5px;"></i><span style="font-size:12px;">รูปภาพ</span>
+                    </div>
+                    <input type="file" id="menuFileInput" hidden accept="image/*" onchange="handleImageUpload(event)">
+                    <input type="hidden" id="menuImage">
+                </div>
+            </div>
+            <div style="flex:1.5;">
+                 <div class="form-group"><label class="form-label">ชื่อเมนู</label><input type="text" id="menuName" class="form-input"></div>
+                <div class="d-flex gap-10">
+                     <div class="form-group flex-1"><label class="form-label">ราคา</label><input type="number" id="menuPrice" class="form-input"></div>
+                    <div class="form-group flex-1"><label class="form-label">หมวดหมู่</label><select id="menuCategory" class="form-select"></select></div>
+                </div>
+            </div>
+        </div>
+        <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 5px;">
+            <div class="d-flex" style="justify-content: space-between; margin-bottom: 10px;">
+                <label class="form-label" style="margin:0;">ตัวเลือกเพิ่มเติม (Options)</label>
+                <button class="btn btn-ghost" style="padding: 2px 8px; font-size:12px;" onclick="addOptionGroupField()">+ เพิ่มกลุ่ม</button>
+            </div>
+            <div id="optionGroupsContainer" style="max-height: 150px; overflow-y: auto;"></div>
+        </div>
+        <div class="d-flex gap-10" style="margin-top:20px;">
+            <button class="btn btn-outline flex-1" onclick="closeModal('menuModal')">ยกเลิก</button>
+            <button class="btn btn-primary flex-1" onclick="saveMenu()">บันทึก</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="optionSelectionModal">
+    <div class="modal-content">
+        <div class="modal-title" id="optSelectTitle">เลือกรายละเอียด</div>
+        <input type="hidden" id="optSelectMenuId">
+        <div id="optSelectionContainer"></div>
+        <div class="form-group" style="margin-top:15px;">
+            <label class="form-label">หมายเหตุ (Optional)</label>
+            <input type="text" id="optSelectNote" class="form-input" placeholder="ระบุเพิ่มเติม...">
+        </div>
+        <div class="d-flex gap-10" style="margin-top:10px;">
+            <button class="btn btn-outline flex-1" onclick="closeModal('optionSelectionModal')">ยกเลิก</button>
+            <button class="btn btn-primary flex-1" onclick="confirmAddToOrder()">เพิ่มลงบิล</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="paymentModal">
+    <div class="modal-content">
+        <div class="modal-title">ชำระเงิน</div>
+        <div class="d-flex gap-10" style="margin-bottom:20px;">
+            <div class="chip flex-1 text-center selected" id="optPayCash" onclick="setPaymentType('cash')" style="padding:15px; border-radius:8px;">
+                <i class="fas fa-coins" style="font-size:20px; display:block; margin-bottom:5px;"></i> เงินสด
+            </div>
+            <div class="chip flex-1 text-center" id="optPayTransfer" onclick="setPaymentType('transfer')" style="padding:15px; border-radius:8px;">
+                <i class="fas fa-qrcode" style="font-size:20px; display:block; margin-bottom:5px;"></i> โอนจ่าย
+            </div>
+        </div>
+        <div class="text-center" style="margin-bottom:20px;">
+            <div style="font-size:32px; font-weight:700;" id="payTotal">฿0</div>
+            <small style="color:var(--text-muted);">ยอดชำระ</small>
+        </div>
+        <div id="cashSection">
+            <div class="form-group">
+                <label class="form-label">รับเงินมา</label>
+                <input type="number" id="cashReceived" class="form-input" placeholder="0.00" oninput="calculateChange()">
+            </div>
+            <div class="d-flex" style="justify-content:space-between; font-weight:600;">
+                <span>เงินทอน:</span><span id="changeAmount">฿0</span>
+            </div>
+        </div>
+        <div class="d-flex gap-10" style="margin-top:20px;">
+            <button class="btn btn-outline flex-1" onclick="closeModal('paymentModal')">กลับ</button>
+            <button class="btn btn-primary flex-1" onclick="confirmPayment()">ยืนยัน</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="billPreviewModal">
+    <div class="modal-content" style="width: 360px;">
+        <div class="modal-title">ออกใบเสร็จ</div>
+        <div id="billPreviewContent" style="background:white; padding:15px; border:1px solid #eee; margin-bottom:15px; font-size:12px;"></div>
+        <div class="d-flex gap-10">
+            <button class="btn btn-outline flex-1" onclick="closeModal('billPreviewModal')">ปิด</button>
+            <button class="btn btn-primary flex-1" onclick="printBillAndClose()">พิมพ์ & จบงาน</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="settingsModal">
+    <div class="modal-content">
+        <div class="modal-title">ตั้งค่า & ข้อมูล</div>
+        <div class="setting-btn-row">
+            <button class="btn btn-primary" onclick="requestAdminAuth('backup')"><i class="fas fa-file-download"></i> สำรองข้อมูล (Backup)</button>
+            <button class="btn btn-outline" onclick="requestAdminAuth('restore')"><i class="fas fa-file-upload"></i> กู้คืนข้อมูล (Restore)</button>
+            <input type="file" id="importFile" hidden accept=".json" onchange="importData(event)">
+            <button class="btn btn-outline" style="border-color:var(--primary); color:var(--primary);" onclick="requestAdminAuth('changePin')"><i class="fas fa-key"></i> เปลี่ยนรหัสผ่าน</button>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <button class="btn btn-outline" style="width: 100%; border-color:var(--red); color:var(--red); margin-bottom:10px;" onclick="logout()"><i class="fas fa-power-off"></i> ออกจากระบบ</button>
+            <button class="btn btn-ghost" style="color:var(--text-muted); width: 100%; font-size:12px;" onclick="requestAdminAuth('reset')"><i class="fas fa-exclamation-triangle"></i> ล้างข้อมูลทั้งหมด (Reset)</button>
+        </div>
+        
+        <button class="btn btn-ghost" style="margin-top:10px;" onclick="closeModal('settingsModal')">ปิดหน้าต่าง</button>
+    </div>
+</div>
+
+<div class="modal" id="kitchenModal">
+    <div class="modal-content" style="width: 360px;">
+        <div class="modal-title">ใบส่งครัว</div>
+        <div id="kitchenPreviewContent" style="background:white; padding:15px; border:1px solid #eee; margin-bottom:15px; font-size:12px;"></div>
+        <div class="d-flex gap-10">
+            <button class="btn btn-outline flex-1" onclick="closeModal('kitchenModal')">ปิด</button>
+            <button class="btn btn-primary flex-1" onclick="confirmKitchenOrder()">ยืนยันส่งครัว</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="adminPinModal">
+    <div class="modal-content" style="width: 340px;">
+        <div class="modal-title" id="adminPinTitle">ยืนยันรหัส Admin</div>
+        <div style="text-align:center; margin-bottom:10px; color:var(--text-muted);" id="adminPinDesc">กรุณาใส่รหัสเพื่อดำเนินการ</div>
+        
+        <div class="pin-dots" id="adminPinDots">
+            <div class="dot admin-dot"></div><div class="dot admin-dot"></div><div class="dot admin-dot"></div><div class="dot admin-dot"></div>
+        </div>
+
+        <div class="numpad">
+            <div class="num-btn" onclick="enterAdminPin(1)">1</div>
+            <div class="num-btn" onclick="enterAdminPin(2)">2</div>
+            <div class="num-btn" onclick="enterAdminPin(3)">3</div>
+            <div class="num-btn" onclick="enterAdminPin(4)">4</div>
+            <div class="num-btn" onclick="enterAdminPin(5)">5</div>
+            <div class="num-btn" onclick="enterAdminPin(6)">6</div>
+            <div class="num-btn" onclick="enterAdminPin(7)">7</div>
+            <div class="num-btn" onclick="enterAdminPin(8)">8</div>
+            <div class="num-btn" onclick="enterAdminPin(9)">9</div>
+            <div class="num-btn" style="background:transparent; border:none;" onclick="clearAdminPin()">C</div>
+            <div class="num-btn" onclick="enterAdminPin(0)">0</div>
+            <div class="num-btn" style="background:transparent; border:none; color:var(--red);" onclick="delAdminPin()"><i class="fas fa-backspace"></i></div>
+        </div>
+        <button class="btn btn-ghost" style="margin-top:20px;" onclick="closeModal('adminPinModal')">ยกเลิก</button>
+    </div>
+</div>
+
+<div id="receiptPrintArea" style="position:fixed; top:-9999px; left:-9999px; width:300px; padding:20px; background:white; color:black; font-family:'Sarabun', sans-serif;">
+    <div style="text-align:center; margin-bottom: 5px;">
+        <img src="qr.jpeg" alt="QR Code" style="width: 100px; height: 100px; object-fit: contain;">
+    </div>
+    <div style="text-align:center; margin-bottom:10px; border-bottom:1px dashed #000; padding-bottom:5px;">
+        <h3 style="margin:0;">Alcaljing 1.1</h3><p style="font-size:10px; margin:0;">Receipt</p><p id="receiptDate" style="font-size:10px;"></p>
+    </div>
+    <div style="font-size:12px; margin-bottom:5px;"><div>โต๊ะ: <span id="receiptCustomer"></span> (<span id="receiptType"></span>)</div></div>
+    <table style="width:100%; font-size:12px; border-collapse:collapse; margin-bottom:10px;">
+        <thead><tr style="border-bottom:1px solid #000;"><th style="text-align:left;">รายการ</th><th style="width:30px;">Qty</th><th style="text-align:right;">รวม</th></tr></thead>
+        <tbody id="receiptItems"></tbody>
+    </table>
+    <div style="border-top:1px dashed #000; padding-top:5px; font-size:12px;">
+        <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>ยอดสุทธิ</span><span id="receiptTotal"></span></div>
+        <div style="display:flex; justify-content:space-between;"><span>รับเงิน</span><span id="receiptReceived"></span></div>
+        <div style="display:flex; justify-content:space-between;"><span>เงินทอน</span><span id="receiptChange"></span></div>
+    </div>
+    <div style="text-align:center; font-size:10px; margin-top:15px;">Thank you</div>
+</div>
+
+<div id="kitchenPrintArea" style="position:fixed; top:-9999px; left:-9999px; width:300px; padding:20px; background:white; color:black; font-family:'Sarabun', sans-serif;">
+    <div style="text-align:center; margin-bottom:10px; border-bottom:1px dashed #000; padding-bottom:5px;">
+        <h3 style="margin:0;">Alcaljing Kitchen</h3>
+        <p style="font-size:12px; margin:0; font-weight: bold;">ใบส่งครัว / TICKET</p>
+        <p id="kitchenDate" style="font-size:10px;"></p>
+    </div>
+    <div style="font-size:12px; margin-bottom:5px; font-weight:bold;">
+        <div>โต๊ะ: <span id="kitchenTable"></span> (<span id="kitchenType"></span>)</div>
+    </div>
+    <table style="width:100%; font-size:12px; border-collapse:collapse; margin-bottom:10px;">
+        <thead>
+            <tr style="border-bottom:1px solid #000;">
+                <th style="text-align:left;">รายการ</th>
+                <th style="width:30px; text-align:center;">Qty</th>
+            </tr>
+        </thead>
+        <tbody id="kitchenItems"></tbody>
+    </table>
+    <div style="border-top:1px dashed #000; padding-top:5px; text-align:center; font-size:10px;">
+        *** จบรายการ ***
+    </div>
+</div>
+
+<div id="zReportPrintArea" style="position:fixed; top:-9999px; left:-9999px; width:300px; padding:20px; background:white; color:black; font-family:'Sarabun', sans-serif;">
+    <div style="text-align:center; margin-bottom:10px; border-bottom:2px solid #000; padding-bottom:5px;">
+        <h3 style="margin:0;">Alcaljing 1.02</h3><p style="font-size:12px; font-weight:bold; margin:0;">Z-REPORT (Closing)</p><p id="zDate" style="font-size:10px;"></p>
+    </div>
+    <div style="margin-bottom:10px;">
+        <div style="font-weight:bold; border-bottom:1px solid #000;">1. SALES</div>
+        <div style="display:flex; justify-content:space-between; font-size:12px;"><span>Sales Total</span><span id="zSalesTotal"></span></div>
+        <div style="display:flex; justify-content:space-between; font-size:10px; color:#555;"><span>(Cash: <span id="zSalesCash"></span>)</span><span>(Transfer: <span id="zSalesTransfer"></span>)</span></div>
+    </div>
+    <div style="margin-bottom:10px;">
+        <div style="font-weight:bold; border-bottom:1px solid #000;">2. INCOME (+)</div>
+        <div style="display:flex; justify-content:space-between; font-size:12px;"><span>Income Total</span><span id="zIncomeTotal"></span></div>
+    </div>
+    <div style="margin-bottom:10px;">
+        <div style="font-weight:bold; border-bottom:1px solid #000;">3. EXPENSE (-)</div>
+        <div style="display:flex; justify-content:space-between; font-size:12px;"><span>Expense Total</span><span id="zExpenseTotal"></span></div>
+    </div>
+    <div style="border-top:2px solid #000; border-bottom:2px solid #000; padding:5px 0; margin-top:10px;">
+        <div style="font-weight:bold; font-size:14px; text-align:center;">NET BALANCE</div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:bold; margin-top:5px;"><span>CASH DRAWER:</span><span id="zNetCash"></span></div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:2px;"><span>BANK TRANSFER:</span><span id="zNetTransfer"></span></div>
+    </div>
+    <div style="text-align:center; font-size:10px; margin-top:15px;">*** END OF DAY ***</div>
+</div>
+
+<script>
+    // --- Login Logic & Security ---
+    let currentPin = '';
+    let currentShopPin = localStorage.getItem('pos_pin') || '1234'; // Default PIN
+
+    function enterPin(num) {
+        if(currentPin.length < 4) {
+            currentPin += num;
+            updatePinUI();
+            if(currentPin.length === 4) {
+                setTimeout(checkLogin, 100);
+            }
+        }
+    }
+
+    function delPin() { currentPin = currentPin.slice(0, -1); updatePinUI(); }
+    function clearPin() { currentPin = ''; updatePinUI(); }
+    function updatePinUI() {
+        const dots = document.querySelectorAll('#pinDots .dot');
+        dots.forEach((dot, index) => {
+            if (index < currentPin.length) dot.classList.add('active');
+            else dot.classList.remove('active');
+        });
+    }
+
+    function checkLogin() {
+        if(currentPin === currentShopPin) {
+            document.getElementById('loginSection').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('mainAppSection').style.display = 'flex';
+            }, 300);
+        } else {
+            alert('รหัสผ่านไม่ถูกต้อง!');
+            clearPin();
+        }
+    }
+
+    function logout() {
+        if(confirm('ต้องการออกจากระบบ?')) {
+            closeModal('settingsModal'); 
+            document.getElementById('mainAppSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'flex';
+            document.getElementById('loginSection').style.opacity = '1';
+            clearPin();
+        }
+    }
+
+    // --- Admin Auth Logic (Action Guard) ---
+    let pendingAction = null;
+    let adminTempPin = '';
+
+    function requestAdminAuth(action) {
+        pendingAction = action;
+        adminTempPin = '';
+        updateAdminPinUI();
+        
+        // Reset Text
+        document.getElementById('adminPinTitle').innerText = 'ยืนยันรหัส Admin';
+        document.getElementById('adminPinDesc').innerText = 'กรุณาใส่รหัสเพื่อดำเนินการ';
+        
+        openModal('adminPinModal');
+    }
+
+    function enterAdminPin(num) {
+        if(adminTempPin.length < 4) {
+            adminTempPin += num;
+            updateAdminPinUI();
+            if(adminTempPin.length === 4) {
+                setTimeout(checkAdminAuth, 100);
+            }
+        }
+    }
+
+    function delAdminPin() { adminTempPin = adminTempPin.slice(0, -1); updateAdminPinUI(); }
+    function clearAdminPin() { adminTempPin = ''; updateAdminPinUI(); }
+
+    function updateAdminPinUI() {
+        const dots = document.querySelectorAll('.admin-dot');
+        dots.forEach((dot, index) => {
+            if (index < adminTempPin.length) dot.classList.add('active');
+            else dot.classList.remove('active');
+        });
+    }
+
+    function checkAdminAuth() {
+        // Special case: Setting NEW PIN
+        if (pendingAction === 'setNewPin') {
+            currentShopPin = adminTempPin;
+            localStorage.setItem('pos_pin', currentShopPin);
+            alert('เปลี่ยนรหัสผ่านสำเร็จ!');
+            closeModal('adminPinModal');
+            return;
+        }
+
+        // Standard Verification
+        if(adminTempPin === currentShopPin) {
+            if (pendingAction === 'changePin') {
+                // Verified old pin, now ask for new pin
+                pendingAction = 'setNewPin';
+                adminTempPin = '';
+                updateAdminPinUI();
+                document.getElementById('adminPinTitle').innerText = 'ตั้งรหัสผ่านใหม่';
+                document.getElementById('adminPinDesc').innerText = 'กรุณากำหนดรหัส 4 หลักใหม่';
+            } else {
+                // Execute other actions
+                closeModal('adminPinModal');
+                if(pendingAction === 'backup') exportData();
+                if(pendingAction === 'restore') document.getElementById('importFile').click();
+                if(pendingAction === 'reset') factoryReset();
+            }
+        } else {
+            alert('รหัสผ่านไม่ถูกต้อง');
+            clearAdminPin();
+        }
+    }
+
+    // --- Data & State ---
+    const defaultCats = ['Coffee', 'Non-Coffee', 'Bakery', 'Food'];
+    const defaultMenu = [
+        { id: 1, name: 'Espresso', price: 60, inStock: true, image: '', category: 'Coffee', options: [] },
+        { id: 2, name: 'Latte', price: 75, inStock: true, image: '', category: 'Coffee', options: [{ name: 'ความหวาน', choices: ['0%', '50%', '100%'] }, { name: 'ประเภท', choices: ['ร้อน', 'เย็น (+5)', 'ปั่น (+10)'] }] },
+        { id: 3, name: 'Croissant', price: 85, inStock: true, image: '', category: 'Bakery', options: [{ name: 'อุ่นร้อน', choices: ['ใช่', 'ไม่'] }] }
+    ];
+
+    let categories = JSON.parse(localStorage.getItem('pos_categories')) || defaultCats;
+    let menuItems = JSON.parse(localStorage.getItem('pos_menuItems')) || defaultMenu;
+    let customers = JSON.parse(localStorage.getItem('pos_customers')) || [];
+    let salesHistory = JSON.parse(localStorage.getItem('pos_salesHistory')) || [];
+    let transactions = JSON.parse(localStorage.getItem('pos_transactions')) || [];
+
+    let currentCategory = 'All', currentCustomerId = null, tempOptionSelections = {}, paymentType = 'cash', txType = 'income', txMethod = 'cash';
+
+    // --- Helpers ---
+    function openModal(id) { document.getElementById(id).classList.add('show'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+    function saveData() {
+        localStorage.setItem('pos_categories', JSON.stringify(categories));
+        localStorage.setItem('pos_menuItems', JSON.stringify(menuItems));
+        localStorage.setItem('pos_customers', JSON.stringify(customers));
+        localStorage.setItem('pos_salesHistory', JSON.stringify(salesHistory));
+        localStorage.setItem('pos_transactions', JSON.stringify(transactions));
+        const icon = document.getElementById('saveIcon'); icon.style.opacity = '1'; setTimeout(() => icon.style.opacity = '0', 1000);
+    }
+    function factoryReset() { if(confirm('⚠️ ข้อมูลทั้งหมดจะหายไป ยืนยัน?')) { localStorage.clear(); location.reload(); } }
+
+    // --- Prevent Unload & Backup ---
+    window.onbeforeunload = function() {
+        if (customers.some(c => c.orders.length > 0)) {
+            return "ยังมีออเดอร์ค้างอยู่ ต้องการปิดหรือไม่?";
+        }
+    };
+
+    function openSettings() { openModal('settingsModal'); }
+    
+    function exportData() {
+        const data = { categories, menuItems, customers, salesHistory, transactions };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "Alcaljing_Backup_" + new Date().toISOString().slice(0,10) + ".json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(data.menuItems && data.salesHistory) {
+                    if(confirm('ข้อมูลปัจจุบันจะถูกทับด้วยไฟล์ Backup ยืนยัน?')) {
+                        categories = data.categories || defaultCats;
+                        menuItems = data.menuItems || defaultMenu;
+                        customers = data.customers || [];
+                        salesHistory = data.salesHistory || [];
+                        transactions = data.transactions || [];
+                        saveData();
+                        location.reload();
+                    }
+                } else { alert('ไฟล์ไม่ถูกต้อง'); }
+            } catch (err) { alert('เกิดข้อผิดพลาดในการอ่านไฟล์'); }
+        };
+        reader.readAsText(file);
+    }
+
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+        document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'});
+    }, 1000);
+
+    renderCategoryBar(); renderMenu(); renderCustomers();
+
+    // --- Logic ---
+    function renderCategoryBar() {
+        document.getElementById('categoryBar').innerHTML = ['All', ...categories].map(cat => 
+            `<button class="cat-btn ${currentCategory === cat ? 'active' : ''}" onclick="selectCategory('${cat}')">${cat === 'All' ? 'ทั้งหมด' : cat}</button>`
+        ).join('');
+    }
+    function selectCategory(cat) { currentCategory = cat; renderCategoryBar(); renderMenu(); }
+    
+    function openCategoryManager() {
+        document.getElementById('categoryListManager').innerHTML = categories.map((cat, i) => `<div class="cat-list-item"><span>${cat}</span><i class="fas fa-trash text-muted" style="cursor:pointer;" onclick="deleteCategory(${i})"></i></div>`).join('');
+        openModal('categoryModal');
+    }
+    function addCategory() {
+        const name = document.getElementById('newCatName').value.trim();
+        if(name && !categories.includes(name)) { categories.push(name); document.getElementById('newCatName').value=''; saveData(); openCategoryManager(); renderCategoryBar(); }
+    }
+    function deleteCategory(i) {
+        if(confirm('ยืนยันลบ?')) { categories.splice(i, 1); if(currentCategory===categories[i]) currentCategory='All'; saveData(); openCategoryManager(); renderCategoryBar(); renderMenu(); }
+    }
+
+    function openTxModal() { document.getElementById('txAmount').value = ''; document.getElementById('txNote').value = ''; setTxType('income'); setTxMethod('cash'); openModal('txModal'); }
+    function setTxType(type) { txType = type; document.getElementById('optTxIncome').className = `chip flex-1 text-center type-income ${type==='income'?'selected':''}`; document.getElementById('optTxExpense').className = `chip flex-1 text-center type-expense ${type==='expense'?'selected':''}`; }
+    function setTxMethod(m) { txMethod = m; document.getElementById('optTxCash').className = `chip flex-1 text-center ${m==='cash'?'selected':''}`; document.getElementById('optTxTransfer').className = `chip flex-1 text-center ${m==='transfer'?'selected':''}`; }
+    function saveTransaction() {
+        const amount = Number(document.getElementById('txAmount').value);
+        if(!amount || amount<=0) return alert('ระบุจำนวนเงิน');
+        transactions.push({ id:Date.now(), type:txType, method:txMethod, amount, note:document.getElementById('txNote').value, time: new Date() });
+        saveData(); closeModal('txModal');
+    }
+
+    function openReportModal() {
+        let salesCash=0, salesTransfer=0, incomeTotal=0, incomeCash=0, incomeTransfer=0, expenseTotal=0, expenseCash=0, expenseTransfer=0;
+        salesHistory.forEach(s => s.paymentMethod==='cash' ? salesCash+=s.total : salesTransfer+=s.total);
+        transactions.forEach(t => {
+            if(t.type==='income') { incomeTotal+=t.amount; t.method==='cash' ? incomeCash+=t.amount : incomeTransfer+=t.amount; }
+            else { expenseTotal+=t.amount; t.method==='cash' ? expenseCash+=t.amount : expenseTransfer+=t.amount; }
+        });
+
+        document.getElementById('rptSalesTotal').innerText = `฿${salesCash+salesTransfer}`;
+        document.getElementById('rptSalesCash').innerText = `฿${salesCash}`; document.getElementById('rptSalesTransfer').innerText = `฿${salesTransfer}`;
+        document.getElementById('rptIncomeTotal').innerText = `+ ฿${incomeTotal}`;
+        document.getElementById('rptIncomeCash').innerText = `฿${incomeCash}`; document.getElementById('rptIncomeTransfer').innerText = `฿${incomeTransfer}`;
+        document.getElementById('rptExpenseTotal').innerText = `- ฿${expenseTotal}`;
+        document.getElementById('rptExpenseCash').innerText = `฿${expenseCash}`; document.getElementById('rptExpenseTransfer').innerText = `฿${expenseTransfer}`;
+        document.getElementById('rptNetCash').innerText = `฿${salesCash + incomeCash - expenseCash}`;
+        document.getElementById('rptNetTransfer').innerText = `฿${salesTransfer + incomeTransfer - expenseTransfer}`;
+
+        // Z-Report Population
+        document.getElementById('zDate').innerText = new Date().toLocaleString('th-TH');
+        document.getElementById('zSalesTotal').innerText = `฿${salesCash+salesTransfer}`; document.getElementById('zSalesCash').innerText = `฿${salesCash}`; document.getElementById('zSalesTransfer').innerText = `฿${salesTransfer}`;
+        document.getElementById('zIncomeTotal').innerText = `฿${incomeTotal}`; document.getElementById('zExpenseTotal').innerText = `฿${expenseTotal}`;
+        document.getElementById('zNetCash').innerText = `฿${salesCash + incomeCash - expenseCash}`; document.getElementById('zNetTransfer').innerText = `฿${salesTransfer + incomeTransfer - expenseTransfer}`;
+        openModal('reportModal');
+    }
+
+    async function printAndCloseDay() {
+        if(!confirm('ยืนยันปิดยอดและรีเซ็ตขาย?')) return;
+        const c = await html2canvas(document.getElementById('zReportPrintArea'),{scale:2});
+        const pdf = new window.jspdf.jsPDF({unit:'mm', format:[80,150]});
+        pdf.addImage(c.toDataURL('image/png'),'PNG',0,0,pdf.internal.pageSize.getWidth(),(c.height*pdf.internal.pageSize.getWidth())/c.width);
+        pdf.save(`Z-Report_${new Date().toLocaleDateString('th-TH').replace(/\//g,'-')}.pdf`);
+        
+        salesHistory = []; transactions = [];
+        saveData();
+        alert('ปิดยอดเรียบร้อย'); closeModal('reportModal');
+    }
+
+    function renderMenu() {
+        const items = currentCategory==='All' ? menuItems : menuItems.filter(i=>i.category===currentCategory);
+        document.getElementById('menuGrid').innerHTML = items.length ? items.map(item => `
+            <div class="menu-item ${!item.inStock?'out-of-stock':''}">
+                <div class="menu-actions">
+                    <div class="btn-mini" onclick="toggleStock(${item.id},event)"><i class="fas ${item.inStock?'fa-toggle-on':'fa-toggle-off'}"></i></div>
+                    <div class="btn-mini" onclick="openMenuModal(${item.id},event)"><i class="fas fa-pen"></i></div>
+                    <div class="btn-mini" style="background:var(--red);" onclick="deleteMenu(${item.id},event)"><i class="fas fa-trash"></i></div>
+                </div>
+                <div class="menu-img" onclick="handleMenuClick(${item.id})" style="${item.image?`background-image:url('${item.image}')`:''}">
+                    ${!item.image?'<i class="fas fa-image" style="font-size:30px;"></i>':''}
+                </div>
+                <div class="menu-details" onclick="handleMenuClick(${item.id})">
+                    <div class="menu-name">${item.name}</div><div class="menu-price">฿${item.price}</div>
+                </div>
+            </div>`).join('') : '<div style="grid-column:1/-1; text-align:center; color:#ccc;">ไม่มีรายการ</div>';
+    }
+    function handleMenuClick(id) {
+        if(!currentCustomerId) return alert('เลือกโต๊ะก่อนครับ');
+        const item = menuItems.find(m=>m.id===id);
+        if(item.inStock) item.options?.length ? openOptionSelection(item) : addToOrder(item, []);
+    }
+    function openOptionSelection(item) {
+        document.getElementById('optSelectMenuId').value = item.id;
+        document.getElementById('optSelectTitle').innerText = item.name;
+        document.getElementById('optSelectNote').value = '';
+        tempOptionSelections = {};
+        document.getElementById('optSelectionContainer').innerHTML = item.options.map(grp => `
+            <div class="option-group-title">${grp.name}</div>
+            <div class="chips-container">${grp.choices.map(c => `<div class="chip" onclick="selectOption(this,'${grp.name}','${c}')">${c}</div>`).join('')}</div>
+        `).join('');
+        openModal('optionSelectionModal');
+    }
+    function selectOption(el, grp, choice) {
+        Array.from(el.parentElement.children).forEach(c=>c.classList.remove('selected'));
+        el.classList.add('selected'); tempOptionSelections[grp] = choice;
+    }
+    function confirmAddToOrder() {
+        const item = menuItems.find(m=>m.id==document.getElementById('optSelectMenuId').value);
+        addToOrder(item, Object.keys(tempOptionSelections).map(k=>`${k}: ${tempOptionSelections[k]}`), document.getElementById('optSelectNote').value);
+        closeModal('optionSelectionModal');
+    }
+    function addToOrder(item, opts=[], note='') {
+        let price = item.price; opts.forEach(o => { if(o.includes('(+5)')) price+=5; if(o.includes('(+10)')) price+=10; });
+        customers.find(c=>c.id===currentCustomerId).orders.push({ tempId:Date.now(), menuId:item.id, name:item.name, price, qty:1, options:opts, note, status:'new' });
+        saveData(); renderOrder(); renderCustomers();
+    }
+    function openMenuModal(id=null, e=null) {
+        if(e) e.stopPropagation();
+        openModal('menuModal');
+        document.getElementById('menuCategory').innerHTML = categories.map(c=>`<option value="${c}">${c}</option>`).join('');
+        document.getElementById('optionGroupsContainer').innerHTML = '';
+        if(id) {
+            const m = menuItems.find(x=>x.id===id);
+            document.getElementById('menuId').value=m.id; document.getElementById('menuName').value=m.name; document.getElementById('menuPrice').value=m.price; document.getElementById('menuCategory').value=m.category||categories[0];
+            document.getElementById('menuImage').value=m.image||''; document.getElementById('uploadBox').style.backgroundImage = m.image?`url(${m.image})`:'none';
+            m.options?.forEach(g=>addOptionGroupField(g.name, g.choices.join(',')));
+        } else {
+            document.getElementById('menuId').value=''; document.getElementById('menuName').value=''; document.getElementById('menuPrice').value=''; document.getElementById('menuImage').value=''; document.getElementById('uploadBox').style.backgroundImage='none';
+        }
+    }
+    function addOptionGroupField(name='', choices='') {
+        const div = document.createElement('div'); div.className='form-group'; div.style.cssText='background:#f9f9f9; padding:10px; border-radius:6px;';
+        div.innerHTML = `<div class="d-flex gap-10" style="margin-bottom:5px;"><input class="form-input opt-name" placeholder="ชื่อตัวเลือก" value="${name}"><i class="fas fa-times remove-opt" onclick="this.parentElement.parentElement.remove()"></i></div><input class="form-input opt-choices" placeholder="ตัวเลือก (เช่น A, B)" value="${choices}">`;
+        document.getElementById('optionGroupsContainer').appendChild(div);
+    }
+    function saveMenu() {
+        const id=document.getElementById('menuId').value, name=document.getElementById('menuName').value, price=Number(document.getElementById('menuPrice').value);
+        if(!name||!price) return alert('กรอกข้อมูลให้ครบ');
+        let opts=[]; document.querySelectorAll('#optionGroupsContainer > div').forEach(d => {
+            const n=d.querySelector('.opt-name').value, c=d.querySelector('.opt-choices').value;
+            if(n&&c) opts.push({name:n, choices:c.split(',').map(s=>s.trim()).filter(x=>x!=='')});
+        });
+        if(id) { const m=menuItems.find(x=>x.id==id); m.name=name; m.price=price; m.category=document.getElementById('menuCategory').value; m.image=document.getElementById('menuImage').value; m.options=opts; }
+        else menuItems.push({id:Date.now(), name, price, category:document.getElementById('menuCategory').value, image:document.getElementById('menuImage').value, options:opts, inStock:true});
+        saveData(); closeModal('menuModal'); renderMenu();
+    }
+    
+    // --- Image Resize Logic ---
+    function handleImageUpload(e) { 
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) return alert('รูปใหญ่เกิน 5MB');
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_SIZE = 400; // Resize to max 400px
+                    let width = img.width, height = img.height;
+                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                    else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                    canvas.width = width; canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('uploadBox').style.backgroundImage = `url(${dataUrl})`;
+                    document.getElementById('menuImage').value = dataUrl;
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function deleteMenu(id,e) { e.stopPropagation(); if(confirm('ลบ?')) { menuItems=menuItems.filter(m=>m.id!==id); saveData(); renderMenu(); } }
+    function toggleStock(id,e) { e.stopPropagation(); const m=menuItems.find(x=>x.id===id); m.inStock=!m.inStock; saveData(); renderMenu(); }
+
+    function openCustomerModal(type) { 
+        document.getElementById('customerName').value=''; 
+        currentCustomerId=null; 
+        document.getElementById('customerModal').setAttribute('data-type', type); 
+        openModal('customerModal'); 
+    }
+    
+    function saveCustomer() { 
+        const n=document.getElementById('customerName').value; if(!n) return alert('ใส่ชื่อ'); 
+        const type = document.getElementById('customerModal').getAttribute('data-type');
+        const c={id:Date.now(), name:n, type: type, orders:[]}; 
+        customers.push(c); currentCustomerId=c.id; saveData(); closeModal('customerModal'); renderCustomers(); renderOrder(); 
+    }
+
+    function renderCustomers() { document.getElementById('customerList').innerHTML = customers.map(c=>`<div class="customer-card ${c.id===currentCustomerId?'active':''}" onclick="currentCustomerId=${c.id}; renderCustomers(); renderOrder();"><div class="d-flex" style="justify-content:space-between;"><div style="font-weight:600;"><i class="fas ${c.type==='table'?'fa-chair':'fa-shopping-bag'}"></i> ${c.name}</div><span style="font-size:12px; border:1px solid currentColor; padding:0 6px; border-radius:10px;">Active</span></div><div class="text-muted" style="font-size:12px;">Items: ${c.orders.length}</div></div>`).join(''); }
+    function renderOrder() {
+        const c=customers.find(x=>x.id===currentCustomerId);
+        if(!c) { document.getElementById('currentCustomerName').innerText='เลือกโต๊ะ'; document.getElementById('orderList').innerHTML='<div class="text-center" style="color:#ccc; margin-top:50px;">ยังไม่ได้เลือก</div>'; document.getElementById('totalAmount').innerText='฿0'; document.getElementById('btnPay').disabled=true; return; }
+        document.getElementById('currentCustomerName').innerText=c.name; document.getElementById('currentCustomerType').innerText=c.type==='table'?'ทานที่ร้าน':'กลับบ้าน';
+        let total=0;
+        document.getElementById('orderList').innerHTML = c.orders.map((o,i) => {
+            total+=o.price*o.qty;
+            return `<div class="order-item"><div class="item-row"><span>${o.name}</span><span>฿${o.price*o.qty}</span></div>${o.options.length?`<span class="item-options">${o.options.join(', ')}</span>`:''} ${o.note?`<div style="font-size:11px;color:var(--red);">${o.note}</div>`:''} <div class="d-flex" style="justify-content:space-between; margin-top:5px;"><div class="qty-control"><div class="btn-qty" onclick="${o.status==='new'?`updateQty(${i},-1)`:''}">${o.status==='new'?'-':''}</div><div class="qty-num">${o.qty}</div><div class="btn-qty" onclick="${o.status==='new'?`updateQty(${i},1)`:''}">${o.status==='new'?'+':''}</div></div>${o.status==='new'?`<i class="fas fa-trash text-muted" style="cursor:pointer;" onclick="removeOrderItem(${i})"></i>`:'<small style="color:var(--green);">ส่งแล้ว</small>'}</div></div>`;
+        }).join('');
+        document.getElementById('totalAmount').innerText=`฿${total}`;
+        document.getElementById('btnPay').disabled = c.orders.length === 0 || c.orders.some(o => o.status === 'new');
+    }
+    function updateQty(i,d) { const c=customers.find(x=>x.id===currentCustomerId); c.orders[i].qty+=d; if(c.orders[i].qty<=0) c.orders.splice(i,1); saveData(); renderOrder(); renderCustomers(); }
+    function removeOrderItem(i) { customers.find(x=>x.id===currentCustomerId).orders.splice(i,1); saveData(); renderOrder(); renderCustomers(); }
+    
+    // --- Kitchen Logic (Updated to Bill Style) ---
+    function sendOrderToKitchen() { 
+        if(!currentCustomerId) return;
+        const c=customers.find(x=>x.id===currentCustomerId);
+        const newItems = c.orders.filter(o => o.status === 'new');
+        if(newItems.length === 0) return alert('ไม่มีรายการใหม่');
+
+        // Populate Kitchen Slip (Same layout as Bill but filtered info)
+        document.getElementById('kitchenDate').innerText = new Date().toLocaleString('th-TH');
+        document.getElementById('kitchenTable').innerText = c.name;
+        document.getElementById('kitchenType').innerText = c.type === 'table' ? 'ทานที่ร้าน' : 'กลับบ้าน';
+        document.getElementById('kitchenItems').innerHTML = newItems.map(o => `
+            <tr>
+                <td style="padding:4px 0;">
+                    <div>${o.name}</div>
+                    ${o.options.length ? `<div style="font-size:10px; color:#555;">${o.options.join(', ')}</div>` : ''}
+                    ${o.note ? `<div style="font-size:11px; font-weight:bold;">* ${o.note}</div>` : ''}
+                </td>
+                <td style="text-align:center; vertical-align:top; padding-top:4px;">${o.qty}</td>
+            </tr>
+        `).join('');
+
+        document.getElementById('kitchenPreviewContent').innerHTML = document.getElementById('kitchenPrintArea').innerHTML;
+        openModal('kitchenModal');
+    }
+
+    async function confirmKitchenOrder() {
+        const c = await html2canvas(document.getElementById('kitchenPrintArea'),{scale:2});
+        const pdf = new window.jspdf.jsPDF({unit:'mm', format:[80,150]});
+        pdf.addImage(c.toDataURL('image/png'),'PNG',0,0,pdf.internal.pageSize.getWidth(),(c.height*pdf.internal.pageSize.getWidth())/c.width);
+        pdf.save('Kitchen_Ticket.pdf');
+
+        const cust = customers.find(x=>x.id===currentCustomerId); 
+        cust.orders.forEach(o => { if(o.status === 'new') o.status = 'sent'; });
+        saveData(); 
+        closeModal('kitchenModal'); 
+        renderOrder();
+    }
+
+    function cancelCurrentOrder() { if(currentCustomerId && confirm('ยกเลิก?')) { customers=customers.filter(c=>c.id!==currentCustomerId); currentCustomerId=null; saveData(); renderCustomers(); renderOrder(); } }
+
+    function openPaymentModal() {
+        const c=customers.find(x=>x.id===currentCustomerId); const total=c.orders.reduce((s,o)=>s+(o.price*o.qty),0);
+        document.getElementById('payTotal').innerText=`฿${total}`; document.getElementById('cashReceived').value=''; document.getElementById('changeAmount').innerText='฿0'; setPaymentType('cash'); openModal('paymentModal');
+    }
+    function setPaymentType(t) { paymentType=t; document.getElementById('optPayCash').className=`chip flex-1 text-center ${t==='cash'?'selected':''}`; document.getElementById('optPayTransfer').className=`chip flex-1 text-center ${t==='transfer'?'selected':''}`; document.getElementById('cashSection').style.display=t==='cash'?'block':'none'; }
+    function calculateChange() {
+        const total=customers.find(x=>x.id===currentCustomerId).orders.reduce((s,o)=>s+(o.price*o.qty),0);
+        const chg=Number(document.getElementById('cashReceived').value)-total;
+        const el=document.getElementById('changeAmount'); el.innerText=chg>=0?`฿${chg}`:'ไม่พอ'; el.style.color=chg>=0?'var(--green)':'var(--red)';
+    }
+    function confirmPayment() {
+        const c=customers.find(x=>x.id===currentCustomerId); const total=c.orders.reduce((s,o)=>s+(o.price*o.qty),0);
+        let recv=total, chg=0;
+        if(paymentType==='cash') { recv=Number(document.getElementById('cashReceived').value); if(recv<total) return alert('เงินไม่พอ'); chg=recv-total; }
+        
+        salesHistory.push({ id:Date.now(), time:new Date().toLocaleTimeString(), customer:c.name, type:c.type, paymentMethod:paymentType, total, items:[...c.orders] });
+        customers=customers.filter(x=>x.id!==currentCustomerId); 
+        
+        // Receipt Prep
+        document.getElementById('receiptCustomer').innerText=c.name; document.getElementById('receiptType').innerText=c.type==='table'?'ทานที่ร้าน':'กลับบ้าน'; document.getElementById('receiptTotal').innerText=`฿${total}`; document.getElementById('receiptReceived').innerText=`฿${recv}`; document.getElementById('receiptChange').innerText=`฿${chg}`; document.getElementById('receiptDate').innerText=new Date().toLocaleString('th-TH');
+        document.getElementById('receiptItems').innerHTML=c.orders.map(o=>`<tr><td style="padding:4px 0;"><div>${o.name}</div>${o.options.length?`<div style="font-size:10px;">${o.options.join(', ')}</div>`:''}</td><td style="text-align:center; vertical-align:top; padding-top:4px;">${o.qty}</td><td style="text-align:right; vertical-align:top; padding-top:4px;">${o.price*o.qty}</td></tr>`).join('');
+        document.getElementById('billPreviewContent').innerHTML = document.getElementById('receiptPrintArea').innerHTML;
+        
+        currentCustomerId=null; saveData(); renderCustomers(); renderOrder(); closeModal('paymentModal'); openModal('billPreviewModal');
+    }
+    async function printBillAndClose() {
+        const c = await html2canvas(document.getElementById('receiptPrintArea'),{scale:2});
+        const pdf = new window.jspdf.jsPDF({unit:'mm', format:[80,150]});
+        pdf.addImage(c.toDataURL('image/png'),'PNG',0,0,pdf.internal.pageSize.getWidth(),(c.height*pdf.internal.pageSize.getWidth())/c.width);
+        pdf.save('bill.pdf'); closeModal('billPreviewModal');
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js').catch(err => console.log('SW Error', err));
+        });
+    }
+</script>
+</body>
+</html>
